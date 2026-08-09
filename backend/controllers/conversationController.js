@@ -32,18 +32,18 @@ const createConversation = async (req, res) => {
   }
 };
 
-
-// Get all conversations of logged-in user
+// Get all active conversations of logged-in user (only conversations that have messages)
 const getConversations = async (req, res) => {
   try {
     const userId = req.user.userId;
 
     const conversations = await Conversation.find({
       participants: userId,
-    }).populate(
-      "participants",
-      "username phoneNumber profilePicture isOnline lastSeen"
-    );
+      lastMessage: { $ne: null },
+    })
+      .populate("participants", "username phoneNumber profilePicture isOnline lastSeen")
+      .populate("lastMessage")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -56,7 +56,6 @@ const getConversations = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   createConversation,

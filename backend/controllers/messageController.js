@@ -100,6 +100,11 @@ const sendMessage = async (req, res) => {
         messageData
       );
 
+    await Conversation.findByIdAndUpdate(conversationId, {
+      lastMessage: message._id,
+      updatedAt: Date.now(),
+    });
+
     const populatedMessage =
       await Message.findById(
         message._id
