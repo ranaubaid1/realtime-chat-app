@@ -45,6 +45,35 @@ function Chat() {
   const [activeMenuMessageId, setActiveMenuMessageId] = useState(null);
   const [forwardModalMessage, setForwardModalMessage] = useState(null);
 
+  // Add Contact Modal State
+  const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [newContactInput, setNewContactInput] = useState("");
+  const [addContactError, setAddContactError] = useState("");
+
+  const handleAddNewContact = (e) => {
+    e?.preventDefault();
+    setAddContactError("");
+    const query = newContactInput.trim().toLowerCase();
+    if (!query) return;
+
+    // Find matching user by phone number or username
+    const foundUser = users.find((u) => {
+      if (u._id === currentUser?._id) return false;
+      const phoneMatch = u.phoneNumber?.toLowerCase() === query;
+      const nameMatch = u.username?.toLowerCase() === query;
+      return phoneMatch || nameMatch;
+    });
+
+    if (foundUser) {
+      handleSelectUser(foundUser);
+      setShowAddContactModal(false);
+      setNewContactInput("");
+      setAddContactError("");
+    } else {
+      setAddContactError(`No registered user found for "${newContactInput}". Ask them to register first! 📱`);
+    }
+  };
+
   // Voice Note Recording State
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -614,13 +643,28 @@ function Chat() {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate("/profile")}
-            className="p-2.5 hover:bg-slate-800/80 rounded-xl text-slate-400 hover:text-white transition-all duration-200 border border-slate-800 hover:border-slate-700"
-            title="Edit Profile"
-          >
-            ⚙️
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShowAddContactModal(true);
+                setAddContactError("");
+                setNewContactInput("");
+              }}
+              className="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 hover:text-indigo-200 rounded-xl transition-all duration-200 border border-indigo-500/30 font-semibold text-xs flex items-center gap-1.5 shadow"
+              title="Start New Chat by Phone Number or Username"
+            >
+              <span className="text-sm font-bold">➕</span>
+              <span className="hidden sm:inline">New Chat</span>
+            </button>
+
+            <button
+              onClick={() => navigate("/profile")}
+              className="p-2.5 hover:bg-slate-800/80 rounded-xl text-slate-400 hover:text-white transition-all duration-200 border border-slate-800 hover:border-slate-700"
+              title="Edit Profile"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -1158,6 +1202,68 @@ function Chat() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Contact / Start New Chat Modal */}
+      {showAddContactModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <span>💬</span> Start New Chat
+              </h3>
+              <button
+                onClick={() => setShowAddContactModal(false)}
+                className="text-slate-400 hover:text-slate-200 text-lg font-bold p-1"
+              >
+                ✖
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+              Enter the <b>Phone Number</b> or <b>Username</b> of the person you want to chat with.
+            </p>
+
+            <form onSubmit={handleAddNewContact} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Phone Number or Username
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 03374790132 or ubaid"
+                  value={newContactInput}
+                  onChange={(e) => setNewContactInput(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  autoFocus
+                />
+              </div>
+
+              {addContactError && (
+                <div className="bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs p-3 rounded-2xl">
+                  {addContactError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddContactModal(false)}
+                  className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-semibold text-xs transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newContactInput.trim()}
+                  className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-40 text-white font-bold rounded-2xl text-xs shadow-lg shadow-indigo-500/20 transition"
+                >
+                  Start Chat 🚀
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
