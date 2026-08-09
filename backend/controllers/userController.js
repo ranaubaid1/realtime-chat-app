@@ -207,13 +207,19 @@ const addContact = async (req, res) => {
     }
 
     const cleanPhone = phoneNumber.trim();
+    const phoneDigits = cleanPhone.replace(/\D/g, "");
+    const last10 = phoneDigits.length >= 7 ? phoneDigits.slice(-10) : phoneDigits;
 
-    const registeredUser = await User.findOne({
-      $or: [
-        { phoneNumber: cleanPhone },
-        { username: { $regex: `^${name.trim()}$`, $options: "i" } }
-      ]
-    });
+    let registeredUser = null;
+    if (last10) {
+      registeredUser = await User.findOne({
+        $or: [
+          { phoneNumber: cleanPhone },
+          { phoneNumber: { $regex: `${last10}$` } },
+          { username: { $regex: `^${name.trim()}$`, $options: "i" } }
+        ]
+      });
+    }
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
@@ -254,18 +260,36 @@ const getContacts = async (req, res) => {
     const user = await User.findById(userId).populate("contacts.contactUser", "username phoneNumber profilePicture about isOnline lastSeen");
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
+    const allUsers = await User.find({ _id: { $ne: userId } }).select("username phoneNumber profilePicture about isOnline lastSeen");
+
     const formattedContacts = user.contacts.map((c) => {
-      if (c.contactUser) {
+      let linkedUser = c.contactUser;
+
+      if (!linkedUser) {
+        const cPhoneDigits = (c.phoneNumber || "").replace(/\D/g, "");
+        const cLast10 = cPhoneDigits.length >= 7 ? cPhoneDigits.slice(-10) : cPhoneDigits;
+
+        linkedUser = allUsers.find((u) => {
+          const uPhoneDigits = (u.phoneNumber || "").replace(/\D/g, "");
+          const uLast10 = uPhoneDigits.length >= 7 ? uPhoneDigits.slice(-10) : uPhoneDigits;
+          if (cLast10 && uLast10 && cLast10 === uLast10) return true;
+          if (c.name && u.username && c.name.trim().toLowerCase() === u.username.trim().toLowerCase()) return true;
+          return false;
+        });
+      }
+
+      if (linkedUser) {
         return {
-          _id: c.contactUser._id,
-          username: c.name || c.contactUser.username,
-          phoneNumber: c.contactUser.phoneNumber,
-          profilePicture: c.contactUser.profilePicture,
-          about: c.contactUser.about,
-          isOnline: c.contactUser.isOnline,
+          _id: linkedUser._id,
+          username: c.name || linkedUser.username,
+          phoneNumber: linkedUser.phoneNumber || c.phoneNumber,
+          profilePicture: linkedUser.profilePicture || "",
+          about: linkedUser.about || "",
+          isOnline: !!linkedUser.isOnline,
           isUnregistered: false,
         };
       }
+
       return {
         _id: `unreg_${c._id}`,
         username: c.name,
