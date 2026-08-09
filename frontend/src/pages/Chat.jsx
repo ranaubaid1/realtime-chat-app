@@ -873,7 +873,9 @@ function Chat() {
             }`}>
               💬
             </div>
-            <h2 className={`text-3xl font-extrabold tracking-tight ${themeMode === "dark" ? "text-white" : "text-black"}`}>Black & White Realtime Chat</h2>
+            <h2 className={`text-3xl font-extrabold tracking-tight ${themeMode === "dark" ? "text-white" : "text-black"}`}>
+              Realtime Chat App
+            </h2>
             <p className={`max-w-md mt-3 text-sm leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
               Select a contact to start chatting, sharing high quality photos, voice notes, documents, and making HD calls!
             </p>
