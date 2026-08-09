@@ -900,22 +900,22 @@ function Chat() {
                   <img
                     src={getImageUrl(selectedUser.profilePicture)}
                     alt={selectedUser.username}
-                    className="w-11 h-11 rounded-2xl object-cover ring-2 ring-indigo-500/30"
+                    className="w-11 h-11 rounded-2xl object-cover ring-2 ring-zinc-400"
                   />
                 ) : (
-                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-lg border shadow ${themeMode === "dark" ? "bg-white text-black border-white" : "bg-black text-white border-black"}`}>
                     {(selectedUser.username || "U").charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <h2 className="font-bold text-slate-100 text-base">
+                  <h2 className={`font-bold text-base ${themeMode === "dark" ? "text-white" : "text-black"}`}>
                     {selectedUser.username || selectedUser.phoneNumber}
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className={`text-xs ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
                     {typing ? (
-                      <span className="text-indigo-400 font-semibold animate-pulse">Typing message...</span>
+                      <span className="text-emerald-500 font-semibold animate-pulse">Typing message...</span>
                     ) : onlineUsers.some((u) => String(u.id || u._id) === String(selectedUser._id)) ? (
-                      <span className="text-emerald-400 font-medium">● Online</span>
+                      <span className="text-emerald-500 font-medium">● Online</span>
                     ) : (
                       "Offline"
                     )}
@@ -955,7 +955,7 @@ function Chat() {
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
               {messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-500 text-sm">
+                <div className={`h-full flex items-center justify-center text-sm font-medium ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-600"}`}>
                   No messages in this chat yet. Say hello! 👋
                 </div>
               ) : (
@@ -1004,7 +1004,11 @@ function Chat() {
                               href={getImageUrl(message.file)}
                               target="_blank"
                               rel="noreferrer"
-                              className="underline break-all flex items-center gap-2 text-sm text-indigo-300 hover:text-indigo-200 py-1"
+                              className={`underline break-all flex items-center gap-2 text-sm py-1 font-semibold ${
+                                isMine
+                                  ? themeMode === "dark" ? "text-black hover:text-zinc-700" : "text-white hover:text-zinc-200"
+                                  : themeMode === "dark" ? "text-indigo-300 hover:text-indigo-200" : "text-indigo-600 hover:text-indigo-800"
+                              }`}
                             >
                               📄 {message.fileName || "Download Attachment"}
                             </a>
@@ -1019,11 +1023,15 @@ function Chat() {
                           {message.deletedForEveryone ? (
                             <p className="italic text-xs opacity-60">🚫 This message was deleted</p>
                           ) : (
-                            message.text && <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.text}</p>
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap font-sans">{message.text}</p>
                           )}
 
-                          {/* Indicators */}
-                          <div className="flex items-center justify-end gap-1.5 mt-1.5 text-[10px] opacity-70">
+                          {/* Timestamp & Status */}
+                          <div className={`flex items-center justify-end gap-1.5 mt-1.5 text-[10px] ${
+                            isMine
+                              ? themeMode === "dark" ? "text-zinc-600" : "text-zinc-300"
+                              : themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"
+                          }`}>
                             {message.edited && <span>(edited)</span>}
                             {message.starredBy?.length > 0 && <span>⭐</span>}
                             <span>
@@ -1052,7 +1060,9 @@ function Chat() {
                             }
                             className={`absolute top-1 ${
                               isMine ? "-left-8" : "-right-8"
-                            } opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-slate-200 transition`}
+                            } opacity-0 group-hover:opacity-100 p-1.5 transition ${
+                              themeMode === "dark" ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-black"
+                            }`}
                           >
                             ⋮
                           </button>
@@ -1063,9 +1073,13 @@ function Chat() {
                           <div
                             className={`absolute z-30 top-8 ${
                               isMine ? "right-0" : "left-0"
-                            } bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl p-2 border border-slate-800 text-xs text-slate-200 w-48 space-y-1`}
+                            } shadow-2xl rounded-2xl p-2 border text-xs w-48 space-y-1 ${
+                              themeMode === "dark"
+                                ? "bg-zinc-900 border-zinc-800 text-white"
+                                : "bg-white border-zinc-200 text-black shadow-lg"
+                            }`}
                           >
-                            <div className="flex justify-between px-2 py-1.5 border-b border-slate-800 text-base">
+                            <div className={`flex justify-between px-2 py-1.5 border-b text-base ${themeMode === "dark" ? "border-zinc-800" : "border-zinc-200"}`}>
                               {["👍", "❤️", "😂", "😮", "😢", "🙏"].map((emoji) => (
                                 <button
                                   key={emoji}
@@ -1082,7 +1096,9 @@ function Chat() {
                                 setReplyingTo(message);
                                 setActiveMenuMessageId(null);
                               }}
-                              className="w-full text-left px-3 py-2 hover:bg-slate-800 rounded-xl flex items-center gap-2 transition"
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+                                themeMode === "dark" ? "hover:bg-zinc-800 text-zinc-200" : "hover:bg-zinc-100 text-zinc-800"
+                              }`}
                             >
                               ↩️ Reply
                             </button>
@@ -1094,7 +1110,9 @@ function Chat() {
                                   setMessageText(message.text || "");
                                   setActiveMenuMessageId(null);
                                 }}
-                                className="w-full text-left px-3 py-2 hover:bg-slate-800 rounded-xl flex items-center gap-2 transition"
+                                className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+                                  themeMode === "dark" ? "hover:bg-zinc-800 text-zinc-200" : "hover:bg-zinc-100 text-zinc-800"
+                                }`}
                               >
                                 ✏️ Edit
                               </button>
@@ -1102,14 +1120,18 @@ function Chat() {
 
                             <button
                               onClick={() => handleStar(message._id)}
-                              className="w-full text-left px-3 py-2 hover:bg-slate-800 rounded-xl flex items-center gap-2 transition"
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+                                themeMode === "dark" ? "hover:bg-zinc-800 text-zinc-200" : "hover:bg-zinc-100 text-zinc-800"
+                              }`}
                             >
                               ⭐ {message.starredBy?.includes(currentUser._id) ? "Unstar" : "Star"}
                             </button>
 
                             <button
                               onClick={() => handlePin(message._id)}
-                              className="w-full text-left px-3 py-2 hover:bg-slate-800 rounded-xl flex items-center gap-2 transition"
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+                                themeMode === "dark" ? "hover:bg-zinc-800 text-zinc-200" : "hover:bg-zinc-100 text-zinc-800"
+                              }`}
                             >
                               📌 {message.pinned ? "Unpin" : "Pin"}
                             </button>
@@ -1119,7 +1141,9 @@ function Chat() {
                                 setForwardModalMessage(message);
                                 setActiveMenuMessageId(null);
                               }}
-                              className="w-full text-left px-3 py-2 hover:bg-slate-800 rounded-xl flex items-center gap-2 transition"
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+                                themeMode === "dark" ? "hover:bg-zinc-800 text-zinc-200" : "hover:bg-zinc-100 text-zinc-800"
+                              }`}
                             >
                               ➡️ Forward
                             </button>
@@ -1372,9 +1396,11 @@ function Chat() {
       {/* Add Contact / Save New Contact Modal */}
       {showAddContactModal && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <div className={`border rounded-3xl max-w-md w-full p-6 shadow-2xl relative ${
+            themeMode === "dark" ? "bg-zinc-900 border-zinc-800 text-white" : "bg-white border-zinc-200 text-black shadow-2xl"
+          }`}>
+            <div className={`flex items-center justify-between mb-4 border-b pb-3 ${themeMode === "dark" ? "border-zinc-800" : "border-zinc-200"}`}>
+              <h3 className="text-lg font-bold flex items-center gap-2">
                 <span>👤</span> Add New Contact
               </h3>
               <button
@@ -1382,19 +1408,19 @@ function Chat() {
                   setShowAddContactModal(false);
                   setAddContactMessage({ text: "", type: "" });
                 }}
-                className="text-slate-400 hover:text-slate-200 text-lg font-bold p-1"
+                className={`text-lg font-bold p-1 ${themeMode === "dark" ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-black"}`}
               >
                 ✖
               </button>
             </div>
 
-            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+            <p className={`text-xs mb-4 leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>
               Enter the <b>Contact Name</b> and <b>Phone Number</b> to save to your contacts and verify account status.
             </p>
 
             <form onSubmit={handleSaveNewContact} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className={`block text-xs font-semibold mb-1 ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
                   Contact Name
                 </label>
                 <input
@@ -1402,14 +1428,18 @@ function Chat() {
                   placeholder="e.g. Faran or Ali"
                   value={contactNameInput}
                   onChange={(e) => setContactNameInput(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  className={`w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 ${
+                    themeMode === "dark"
+                      ? "bg-black border-zinc-800 text-white placeholder-zinc-500 focus:ring-white"
+                      : "bg-zinc-100 border-zinc-300 text-black placeholder-zinc-400 focus:ring-black"
+                  }`}
                   autoFocus
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className={`block text-xs font-semibold mb-1 ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
                   Phone Number
                 </label>
                 <input
@@ -1417,17 +1447,21 @@ function Chat() {
                   placeholder="e.g. 03374790132"
                   value={contactPhoneInput}
                   onChange={(e) => setContactPhoneInput(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  className={`w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 ${
+                    themeMode === "dark"
+                      ? "bg-black border-zinc-800 text-white placeholder-zinc-500 focus:ring-white"
+                      : "bg-zinc-100 border-zinc-300 text-black placeholder-zinc-400 focus:ring-black"
+                  }`}
                   required
                 />
               </div>
 
               {addContactMessage.text && (
                 <div
-                  className={`text-xs p-3.5 rounded-2xl border ${
+                  className={`p-3.5 rounded-2xl text-xs font-medium border leading-relaxed ${
                     addContactMessage.type === "success"
-                      ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300"
-                      : "bg-rose-950/60 border-rose-500/40 text-rose-300"
+                      ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/50"
+                      : "bg-amber-950/80 text-amber-300 border-amber-500/50"
                   }`}
                 >
                   {addContactMessage.text}
@@ -1437,20 +1471,24 @@ function Chat() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddContactModal(false);
-                    setAddContactMessage({ text: "", type: "" });
-                  }}
-                  className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-semibold text-xs transition"
+                  onClick={() => setShowAddContactModal(false)}
+                  className={`flex-1 py-3 rounded-2xl font-semibold text-sm transition border ${
+                    themeMode === "dark"
+                      ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700"
+                      : "bg-zinc-200 hover:bg-zinc-300 text-zinc-800 border-zinc-300"
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={!contactNameInput.trim() || !contactPhoneInput.trim()}
-                  className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-40 text-white font-bold rounded-2xl text-xs shadow-lg shadow-indigo-500/20 transition"
+                  className={`flex-1 py-3 rounded-2xl font-bold text-sm transition shadow ${
+                    themeMode === "dark"
+                      ? "bg-white hover:bg-zinc-200 text-black"
+                      : "bg-black hover:bg-zinc-800 text-white"
+                  }`}
                 >
-                  Save & Check Account 🚀
+                  Save & Add Contact
                 </button>
               </div>
             </form>
