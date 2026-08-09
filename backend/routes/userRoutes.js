@@ -11,6 +11,7 @@ const {
   searchUsers,
   addContact,
   getContacts,
+  deleteContact,
 } = require("../controllers/userController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -34,5 +35,6 @@ router.get("/search", authMiddleware, searchUsers);
 // Permanently saved contacts in MongoDB
 router.post("/contacts", authMiddleware, addContact);
 router.get("/contacts", authMiddleware, getContacts);
+router.delete("/contacts/:identifier", authMiddleware, deleteContact);
 
 module.exports = router;

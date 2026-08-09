@@ -283,6 +283,28 @@ const getContacts = async (req, res) => {
   }
 };
 
+const deleteContact = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    user.contacts = user.contacts.filter((c) => {
+      if (c.contactUser && String(c.contactUser) === String(identifier)) return false;
+      if (c.phoneNumber === identifier) return false;
+      if (String(c._id) === String(identifier.replace(/^unreg_/, ""))) return false;
+      return true;
+    });
+
+    await user.save();
+    res.status(200).json({ success: true, message: "Contact deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -293,4 +315,5 @@ module.exports = {
   searchUsers,
   addContact,
   getContacts,
+  deleteContact,
 }; 

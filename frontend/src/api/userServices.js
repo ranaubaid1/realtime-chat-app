@@ -29,3 +29,8 @@ export const getContactsApi = async () => {
   const response = await api.get("/users/contacts");
   return response.data;
 };
+
+export const deleteContactApi = async (identifier) => {
+  const response = await api.delete(`/users/contacts/${identifier}`);
+  return response.data;
+};

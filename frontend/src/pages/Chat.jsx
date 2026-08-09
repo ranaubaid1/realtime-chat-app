@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import socket from "../services/socket";
 
-import { getAllUsers, getProfile, addContactApi, getContactsApi } from "../api/userServices";
+import { getAllUsers, getProfile, addContactApi, getContactsApi, deleteContactApi } from "../api/userServices";
 import { createConversation, getConversations } from "../api/conversationServices";
 import {
   getMessages,
@@ -685,12 +685,47 @@ function Chat() {
     setIncomingCallData(null);
   };
 
-  // Filtered Users list based on search (including saved contacts)
+  // Delete Contact handler
+  const handleDeleteContact = async (userToDelete, e) => {
+    e?.stopPropagation();
+    if (!window.confirm(`Delete contact "${userToDelete.username}" from your saved contacts?`)) return;
+
+    try {
+      const targetIdentifier = userToDelete._id || userToDelete.phoneNumber;
+      await deleteContactApi(targetIdentifier);
+
+      setSavedContacts((prev) => prev.filter((c) => c.phoneNumber !== userToDelete.phoneNumber && String(c._id) !== String(userToDelete._id)));
+      if (selectedUser?._id === userToDelete._id || selectedUser?.phoneNumber === userToDelete.phoneNumber) {
+        setSelectedUser(null);
+      }
+    } catch (err) {
+      console.error("Delete contact error:", err);
+      alert("Failed to delete contact.");
+    }
+  };
+
+  // WhatsApp / Telegram Privacy Model:
+  // Show ONLY saved contacts PLUS registered users with active conversations.
+  // DO NOT dump every registered user from database!
+  const activeConvUserIds = conversations
+    .map((conv) => {
+      if (!conv.members) return null;
+      return conv.members.find((m) => String(m._id || m) !== String(currentUser?._id));
+    })
+    .filter(Boolean);
+
+  const activeConvUsers = users.filter((u) => {
+    if (String(u._id) === String(currentUser?._id)) return false;
+    const hasActiveConv = activeConvUserIds.some((m) => String(m._id || m) === String(u._id));
+    const isAlreadySaved = savedContacts.some(
+      (sc) => String(sc._id) === String(u._id) || sc.phoneNumber === u.phoneNumber
+    );
+    return hasActiveConv && !isAlreadySaved;
+  });
+
   const allDisplayUsers = [
-    ...users.filter((u) => u._id !== currentUser?._id),
-    ...savedContacts.filter(
-      (sc) => sc.isUnregistered && !users.some((u) => u.phoneNumber === sc.phoneNumber)
-    ),
+    ...savedContacts,
+    ...activeConvUsers,
   ];
 
   const filteredUsers = allDisplayUsers.filter((u) => {
@@ -800,7 +835,13 @@ function Chat() {
         {/* Users List */}
         <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 custom-scrollbar">
           {filteredUsers.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-sm">No contacts found.</div>
+            <div className="p-8 text-center">
+              <div className="text-3xl mb-2">📇</div>
+              <p className={`text-sm font-bold mb-1 ${themeMode === "dark" ? "text-white" : "text-black"}`}>No Contacts Added</p>
+              <p className={`text-xs ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                Click <b>"+ Add Contact"</b> above to add people by phone number!
+              </p>
+            </div>
           ) : (
             filteredUsers.map((user) => {
               const isOnline = onlineUsers.some(
@@ -867,6 +908,15 @@ function Chat() {
                       )}
                     </p>
                   </div>
+
+                  {/* Delete Contact Button */}
+                  <button
+                    onClick={(e) => handleDeleteContact(user, e)}
+                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-rose-500/20 text-rose-500 rounded-xl transition shadow flex-shrink-0"
+                    title="Delete Contact"
+                  >
+                    🗑️
+                  </button>
                 </div>
               );
             })
