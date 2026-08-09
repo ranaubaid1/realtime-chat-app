@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import socket from "../services/socket";
 
 import { getAllUsers, getProfile, addContactApi, getContactsApi, deleteContactApi } from "../api/userServices";
-import { createConversation, getConversations } from "../api/conversationServices";
+import { createConversation, getConversations, deleteConversationApi } from "../api/conversationServices";
 import {
   getMessages,
   sendMessage,
@@ -738,15 +738,38 @@ function Chat() {
   // Delete Contact handler
   const handleDeleteContact = async (userToDelete, e) => {
     e?.stopPropagation();
-    if (!window.confirm(`Delete contact "${userToDelete.username}" from your saved contacts?`)) return;
+    if (!window.confirm(`Delete contact "${userToDelete.username}" and remove chat history?`)) return;
 
     try {
       const targetIdentifier = userToDelete._id || userToDelete.phoneNumber;
       await deleteContactApi(targetIdentifier);
 
+      const targetConv = (userConversations || []).find((conv) => {
+        const parts = conv.participants || conv.members;
+        if (!parts) return false;
+        return parts.some((p) => String(p._id || p) === String(userToDelete._id) || p.phoneNumber === userToDelete.phoneNumber);
+      });
+
+      if (targetConv?._id) {
+        try {
+          await deleteConversationApi(targetConv._id);
+        } catch (convErr) {
+          console.error("Delete conversation error:", convErr);
+        }
+      }
+
       setSavedContacts((prev) => prev.filter((c) => c.phoneNumber !== userToDelete.phoneNumber && String(c._id) !== String(userToDelete._id)));
+      setUserConversations((prev) => prev.filter((conv) => {
+        const parts = conv.participants || conv.members;
+        if (!parts) return true;
+        return !parts.some((p) => String(p._id || p) === String(userToDelete._id) || p.phoneNumber === userToDelete.phoneNumber);
+      }));
+
       if (selectedUser?._id === userToDelete._id || selectedUser?.phoneNumber === userToDelete.phoneNumber) {
         setSelectedUser(null);
+        setMessages([]);
+        setConversationId(null);
+        setShowContactDrawer(false);
       }
     } catch (err) {
       console.error("Delete contact error:", err);

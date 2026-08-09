@@ -87,7 +87,33 @@ const getConversations = async (req, res) => {
   }
 };
 
+// Delete conversation and its messages
+const deleteConversation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    const conversation = await Conversation.findOne({
+      _id: id,
+      participants: userId,
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ success: false, message: "Conversation not found" });
+    }
+
+    const Message = require("../models/Messages");
+    await Message.deleteMany({ conversation: id });
+    await Conversation.findByIdAndDelete(id);
+
+    res.status(200).json({ success: true, message: "Conversation deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createConversation,
   getConversations,
+  deleteConversation,
 };

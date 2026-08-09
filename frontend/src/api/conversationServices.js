@@ -15,3 +15,9 @@ export const getConversations = async () => {
 
   return response.data;
 };
+
+// Delete conversation
+export const deleteConversationApi = async (id) => {
+  const response = await api.delete(`/conversations/${id}`);
+  return response.data;
+};
