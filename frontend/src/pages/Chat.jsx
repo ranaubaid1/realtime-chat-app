@@ -52,6 +52,17 @@ function Chat() {
   const [addContactMessage, setAddContactMessage] = useState({ text: "", type: "" });
   const [savedContacts, setSavedContacts] = useState([]);
 
+  // Theme Mode State ('dark' | 'light')
+  const [themeMode, setThemeMode] = useState(() => {
+    return localStorage.getItem("app_theme") || "dark";
+  });
+
+  const toggleThemeMode = () => {
+    const newTheme = themeMode === "dark" ? "light" : "dark";
+    setThemeMode(newTheme);
+    localStorage.setItem("app_theme", newTheme);
+  };
+
   const handleSaveNewContact = async (e) => {
     e?.preventDefault();
     setAddContactMessage({ text: "", type: "" });
@@ -694,13 +705,13 @@ function Chat() {
   const pinnedMessage = messages.find((m) => m.pinned);
 
   return (
-    <div className="h-screen bg-slate-900 flex overflow-hidden font-sans text-slate-100 selection:bg-indigo-500 selection:text-white">
+    <div className={`h-screen flex overflow-hidden font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-300 ${themeMode === "dark" ? "bg-slate-900 text-slate-100" : "bg-slate-100 text-slate-800"}`}>
       {/* Hidden Audio Element for WebRTC Voice & Video Audio Streams */}
       <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
       {/* ================= SIDEBAR ================= */}
-      <div className="w-80 md:w-96 bg-slate-900/90 backdrop-blur-xl border-r border-slate-800/80 flex flex-col z-10">
+      <div className={`w-80 md:w-96 backdrop-blur-xl border-r flex flex-col z-10 transition-colors duration-300 ${themeMode === "dark" ? "bg-slate-900/90 border-slate-800/80" : "bg-white border-slate-200 shadow-lg"}`}>
         {/* User Profile Header */}
-        <div className="h-20 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between px-5">
+        <div className={`h-20 border-b flex items-center justify-between px-5 ${themeMode === "dark" ? "bg-slate-950/60 border-slate-800/80" : "bg-slate-50 border-slate-200"}`}>
           <div className="flex items-center gap-3.5">
             <div className="relative">
               {currentUser?.profilePicture ? (
@@ -717,12 +728,25 @@ function Chat() {
               <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-950 rounded-full animate-pulse"></span>
             </div>
             <div className="min-w-0">
-              <h1 className="font-bold text-slate-100 text-sm truncate">{currentUser?.username || "My Profile"}</h1>
+              <h1 className={`font-bold text-sm truncate ${themeMode === "dark" ? "text-slate-100" : "text-slate-800"}`}>{currentUser?.username || "My Profile"}</h1>
               <p className="text-[11px] text-emerald-400 font-medium tracking-wide">Online</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleThemeMode}
+              className={`p-2.5 rounded-xl transition-all duration-200 border shadow ${
+                themeMode === "dark"
+                  ? "bg-slate-800/80 hover:bg-slate-700 text-amber-300 border-slate-700"
+                  : "bg-slate-100 hover:bg-slate-200 text-indigo-600 border-slate-300"
+              }`}
+              title={themeMode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {themeMode === "dark" ? "☀️" : "🌙"}
+            </button>
+
             <button
               onClick={() => {
                 setShowAddContactModal(true);
@@ -739,7 +763,11 @@ function Chat() {
 
             <button
               onClick={() => navigate("/profile")}
-              className="p-2.5 hover:bg-slate-800/80 rounded-xl text-slate-400 hover:text-white transition-all duration-200 border border-slate-800 hover:border-slate-700"
+              className={`p-2.5 rounded-xl transition-all duration-200 border ${
+                themeMode === "dark"
+                  ? "hover:bg-slate-800/80 text-slate-400 hover:text-white border-slate-800"
+                  : "hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200"
+              }`}
               title="Edit Profile"
             >
               ⚙️
@@ -748,16 +776,20 @@ function Chat() {
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 border-b border-slate-800/50">
+        <div className={`p-4 border-b ${themeMode === "dark" ? "border-slate-800/50" : "border-slate-200"}`}>
           <div className="relative">
             <input
               type="text"
               placeholder="Search conversations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/50 border border-slate-800 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+              className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all ${
+                themeMode === "dark"
+                  ? "bg-slate-950/50 border-slate-800 text-slate-200 placeholder-slate-500"
+                  : "bg-slate-100 border-slate-200 text-slate-800 placeholder-slate-400"
+              }`}
             />
-            <span className="absolute left-3.5 top-2.5 text-slate-500 text-sm">🔍</span>
+            <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">🔍</span>
           </div>
         </div>
 
@@ -778,8 +810,12 @@ function Chat() {
                   onClick={() => handleSelectUser(user)}
                   className={`p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer transition-all duration-200 group ${
                     isSelected
-                      ? "bg-gradient-to-r from-indigo-600/30 to-violet-600/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/5"
-                      : "hover:bg-slate-800/50 border border-transparent"
+                      ? themeMode === "dark"
+                        ? "bg-gradient-to-r from-indigo-600/30 to-violet-600/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/5"
+                        : "bg-indigo-50 border border-indigo-200 shadow-sm text-slate-900"
+                      : themeMode === "dark"
+                      ? "hover:bg-slate-800/50 border border-transparent"
+                      : "hover:bg-slate-100 border border-transparent text-slate-700"
                   }`}
                 >
                   <div className="relative flex-shrink-0">
@@ -823,15 +859,19 @@ function Chat() {
       </div>
 
       {/* ================= CHAT AREA ================= */}
-      <div className="flex-1 flex flex-col bg-slate-950 relative overflow-hidden">
+      <div className={`flex-1 flex flex-col relative overflow-hidden transition-colors duration-300 ${themeMode === "dark" ? "bg-slate-950" : "bg-slate-50"}`}>
         {!selectedUser ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
-            <div className="w-24 h-24 bg-gradient-to-tr from-indigo-600/20 to-violet-600/20 rounded-3xl flex items-center justify-center text-4xl mb-5 border border-indigo-500/20 shadow-2xl shadow-indigo-500/10">
+            <div className={`w-24 h-24 rounded-3xl flex items-center justify-center text-4xl mb-5 border shadow-2xl ${
+              themeMode === "dark"
+                ? "bg-gradient-to-tr from-indigo-600/20 to-violet-600/20 border-indigo-500/20 shadow-indigo-500/10"
+                : "bg-white border-indigo-200 shadow-slate-200"
+            }`}>
               ✨
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-100 tracking-tight">Realtime Chat Experience</h2>
-            <p className="text-slate-400 max-w-md mt-3 text-sm leading-relaxed">
+            <h2 className={`text-3xl font-extrabold tracking-tight ${themeMode === "dark" ? "text-slate-100" : "text-slate-800"}`}>Realtime Chat Experience</h2>
+            <p className={`max-w-md mt-3 text-sm leading-relaxed ${themeMode === "dark" ? "text-slate-400" : "text-slate-500"}`}>
               Select a conversation from the sidebar to send encrypted messages, share high-res photos, voice notes, and make HD calls!
             </p>
           </div>
@@ -849,7 +889,9 @@ function Chat() {
                 </div>
               </div>
             )}
-            <div className="h-20 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-6 flex items-center justify-between z-10">
+            <div className={`h-20 backdrop-blur-xl border-b px-6 flex items-center justify-between z-10 transition-colors duration-300 ${
+              themeMode === "dark" ? "bg-slate-900/80 border-slate-800/80" : "bg-white border-slate-200 shadow-sm"
+            }`}>
               <div className="flex items-center gap-3.5">
                 {selectedUser.profilePicture ? (
                   <img
@@ -937,7 +979,9 @@ function Chat() {
                           className={`px-4 py-3 rounded-2xl relative shadow-md transition-all duration-200 ${
                             isMine
                               ? "bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white rounded-br-none"
-                              : "bg-slate-900 text-slate-200 border border-slate-800/80 rounded-bl-none shadow-black/40"
+                              : themeMode === "dark"
+                              ? "bg-slate-900 text-slate-200 border border-slate-800/80 rounded-bl-none shadow-black/40"
+                              : "bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm"
                           }`}
                         >
                           {/* Image */}
@@ -1148,11 +1192,15 @@ function Chat() {
             )}
 
             {/* Footer Input Form */}
-            <form onSubmit={handleSendMessage} className="bg-slate-900/80 backdrop-blur-xl border-t border-slate-800/80 p-4 flex items-center gap-3">
+            <form onSubmit={handleSendMessage} className={`backdrop-blur-xl border-t p-4 flex items-center gap-3 transition-colors duration-300 ${
+              themeMode === "dark" ? "bg-slate-900/80 border-slate-800/80" : "bg-white border-slate-200 shadow-md"
+            }`}>
               {/* File Attachment */}
               <label
                 htmlFor="file-input"
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-2xl cursor-pointer transition border border-slate-700/60 flex items-center justify-center"
+                className={`p-1.5 rounded-2xl cursor-pointer transition border flex items-center justify-center ${
+                  themeMode === "dark" ? "bg-slate-800 hover:bg-slate-700 border-slate-700/60" : "bg-slate-100 hover:bg-slate-200 border-slate-300"
+                }`}
                 title="Attach Photo or Document"
               >
                 <img src={galleryIcon} alt="Gallery" className="w-8 h-8 rounded-xl object-cover shadow" />
@@ -1183,7 +1231,11 @@ function Chat() {
                     : "Type a message..."
                 }
                 disabled={isRecording || selectedUser?.isUnregistered}
-                className="flex-1 px-4 py-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:bg-rose-950/20 transition"
+                className={`flex-1 px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:bg-rose-950/20 transition ${
+                  themeMode === "dark"
+                    ? "bg-slate-950/60 border-slate-800 text-slate-100 placeholder-slate-500"
+                    : "bg-slate-100 border-slate-200 text-slate-800 placeholder-slate-400"
+                }`}
               />
 
               {/* Mic Record Button */}
