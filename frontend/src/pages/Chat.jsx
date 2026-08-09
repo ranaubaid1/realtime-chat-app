@@ -133,8 +133,10 @@ function Chat() {
   const [incomingCallData, setIncomingCallData] = useState(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const remoteAudioRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const localStreamRef = useRef(null);
+  const pendingOfferRef = useRef(null);
 
   const messagesEndRef = useRef(null);
 
@@ -249,12 +251,16 @@ function Chat() {
     });
 
     socket.on("offer", async (data) => {
-      handleReceiveOffer(data);
+      await handleReceiveOffer(data);
     });
 
     socket.on("answer", async (data) => {
-      if (peerConnectionRef.current) {
-        await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+      if (peerConnectionRef.current && data.answer) {
+        try {
+          await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } catch (e) {
+          console.error("Answer setRemoteDescription error:", e);
+        }
       }
     });
 
@@ -536,7 +542,7 @@ function Chat() {
       localStreamRef.current = stream;
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-      const pc = createPeerConnection();
+      const pc = createPeerConnection(selectedUser._id);
       stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
       const offer = await pc.createOffer();
@@ -573,11 +579,18 @@ function Chat() {
       localStreamRef.current = stream;
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-      const pc = createPeerConnection();
+      const callerId = incomingCallData.senderId;
+      const pc = createPeerConnection(callerId);
       stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
+      // Process pending offer if it arrived before user accepted
+      if (pendingOfferRef.current) {
+        await handleReceiveOffer(pendingOfferRef.current);
+      }
+
       socket.emit("accept-call", {
-        receiverId: incomingCallData.senderId,
+        receiverId: callerId,
+        senderId: currentUser._id,
       });
     } catch (err) {
       console.error("Accept call error:", err);
@@ -591,23 +604,31 @@ function Chat() {
     cleanupCall();
   };
 
-  const createPeerConnection = () => {
+  const createPeerConnection = (targetUserId) => {
+    const targetId = targetUserId || selectedUser?._id || incomingCallData?.senderId;
+
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
 
     pc.onicecandidate = (event) => {
-      if (event.candidate && selectedUser) {
+      if (event.candidate && targetId) {
         socket.emit("ice-candidate", {
-          receiverId: selectedUser._id,
+          receiverId: targetId,
+          senderId: currentUser._id,
           candidate: event.candidate,
         });
       }
     };
 
     pc.ontrack = (event) => {
-      if (remoteVideoRef.current && event.streams[0]) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+      if (event.streams && event.streams[0]) {
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = event.streams[0];
+        }
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
       }
     };
 
@@ -616,22 +637,37 @@ function Chat() {
   };
 
   const handleReceiveOffer = async (data) => {
-    if (!peerConnectionRef.current) return;
-    await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
-    const answer = await peerConnectionRef.current.createAnswer();
-    await peerConnectionRef.current.setLocalDescription(answer);
+    if (!data || !data.offer) return;
 
-    socket.emit("answer", {
-      receiverId: data.senderId,
-      answer,
-    });
+    try {
+      if (!peerConnectionRef.current) {
+        // Offer arrived before peer connection was created (accept clicked) -> store in pendingOfferRef
+        pendingOfferRef.current = data;
+        return;
+      }
+
+      await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+      const answer = await peerConnectionRef.current.createAnswer();
+      await peerConnectionRef.current.setLocalDescription(answer);
+
+      const targetId = data.senderId || selectedUser?._id || incomingCallData?.senderId;
+
+      socket.emit("answer", {
+        receiverId: targetId,
+        senderId: currentUser._id,
+        answer,
+      });
+      pendingOfferRef.current = null;
+    } catch (e) {
+      console.error("Error in handleReceiveOffer:", e);
+    }
   };
 
   const cleanupCall = (notifyOther = true) => {
     if (notifyOther) {
       const targetId = selectedUser?._id || incomingCallData?.senderId;
       if (targetId) {
-        socket.emit("end-call", { receiverId: targetId });
+        socket.emit("end-call", { receiverId: targetId, senderId: currentUser?._id });
       }
     }
 
@@ -643,6 +679,7 @@ function Chat() {
     }
     peerConnectionRef.current = null;
     localStreamRef.current = null;
+    pendingOfferRef.current = null;
     setCallStatus(null);
     setCallType(null);
     setIncomingCallData(null);
@@ -669,6 +706,8 @@ function Chat() {
 
   return (
     <div className="h-screen bg-slate-900 flex overflow-hidden font-sans text-slate-100 selection:bg-indigo-500 selection:text-white">
+      {/* Hidden Audio Element for WebRTC Voice & Video Audio Streams */}
+      <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
       {/* ================= SIDEBAR ================= */}
       <div className="w-80 md:w-96 bg-slate-900/90 backdrop-blur-xl border-r border-slate-800/80 flex flex-col z-10">
         {/* User Profile Header */}

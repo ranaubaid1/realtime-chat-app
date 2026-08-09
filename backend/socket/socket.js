@@ -73,7 +73,7 @@ const initializeSocket = (server) => {
 
     // Event: Initiate Voice/Video Call
     socket.on("call-user", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("incoming-call", data);
       }
@@ -81,7 +81,7 @@ const initializeSocket = (server) => {
 
     // Event: Accept incoming call
     socket.on("accept-call", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("call-accepted", data);
       }
@@ -89,7 +89,7 @@ const initializeSocket = (server) => {
 
     // Event: Reject incoming call
     socket.on("reject-call", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("call-rejected", data);
       }
@@ -97,7 +97,7 @@ const initializeSocket = (server) => {
 
     // Event: End ongoing call
     socket.on("end-call", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("call-ended", data);
       }
@@ -105,7 +105,7 @@ const initializeSocket = (server) => {
 
     // WebRTC Signaling: Send Offer
     socket.on("offer", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("offer", {
           offer: data.offer,
@@ -116,7 +116,7 @@ const initializeSocket = (server) => {
 
     // WebRTC Signaling: Send Answer
     socket.on("answer", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("answer", {
           answer: data.answer,
@@ -127,7 +127,7 @@ const initializeSocket = (server) => {
 
     // WebRTC Signaling: ICE Candidate exchange
     socket.on("ice-candidate", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("ice-candidate", {
           candidate: data.candidate,
