@@ -337,7 +337,8 @@ function Chat() {
   // ==========================================
   const handleSelectUser = async (user) => {
     try {
-      setSelectedUser(user);
+      let activeUser = { ...user };
+      setSelectedUser(activeUser);
       setMessages([]);
       setConversationId(null);
       setReplyingTo(null);
@@ -346,6 +347,23 @@ function Chat() {
       const convRes = await createConversation(user._id, user.phoneNumber);
       const conv = convRes.conversation || convRes.data || convRes;
       const cId = conv?._id;
+
+      if (conv && (conv.participants || conv.members)) {
+        const parts = conv.participants || conv.members;
+        const realReceiver = parts.find(
+          (p) => String(p._id || p) !== String(currentUser?._id)
+        );
+        const resolvedId = realReceiver?._id || realReceiver;
+
+        if (resolvedId && String(user._id) !== String(resolvedId)) {
+          activeUser = {
+            ...activeUser,
+            _id: String(resolvedId),
+            isUnregistered: false,
+          };
+          setSelectedUser(activeUser);
+        }
+      }
 
       if (cId) {
         setConversationId(cId);
