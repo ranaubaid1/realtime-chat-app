@@ -17,6 +17,12 @@ import {
   forwardMessage,
 } from "../api/messageServices";
 
+// Import custom image icons from assets folder
+import audioCallIcon from "../assets/audio call.jpeg";
+import videoCallIcon from "../assets/video call.jpeg";
+import galleryIcon from "../assets/gallery.jpeg";
+import micIcon from "../assets/mic.jpeg";
+
 function Chat() {
   const navigate = useNavigate();
 
@@ -739,17 +745,17 @@ function Chat() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => startCall("voice")}
-                  className="p-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/20 transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-2xl border border-emerald-500/20 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
                   title="Voice Call"
                 >
-                  📞
+                  <img src={audioCallIcon} alt="Voice Call" className="w-8 h-8 rounded-xl object-cover shadow" />
                 </button>
                 <button
                   onClick={() => startCall("video")}
-                  className="p-3 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-2xl border border-indigo-500/20 transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="p-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-2xl border border-indigo-500/20 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
                   title="Video Call"
                 >
-                  📹
+                  <img src={videoCallIcon} alt="Video Call" className="w-8 h-8 rounded-xl object-cover shadow" />
                 </button>
               </div>
             </div>
@@ -1009,10 +1015,10 @@ function Chat() {
               {/* File Attachment */}
               <label
                 htmlFor="file-input"
-                className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl cursor-pointer transition text-lg border border-slate-700/60"
+                className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-2xl cursor-pointer transition border border-slate-700/60 flex items-center justify-center"
                 title="Attach Photo or Document"
               >
-                📎
+                <img src={galleryIcon} alt="Gallery" className="w-8 h-8 rounded-xl object-cover shadow" />
               </label>
               <input
                 id="file-input"
@@ -1050,10 +1056,10 @@ function Chat() {
                 <button
                   type="button"
                   onClick={startRecording}
-                  className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl transition text-lg border border-slate-700/60"
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-2xl transition border border-slate-700/60 flex items-center justify-center"
                   title="Record Voice Note"
                 >
-                  🎙️
+                  <img src={micIcon} alt="Voice Note" className="w-8 h-8 rounded-xl object-cover shadow" />
                 </button>
               )}
 
