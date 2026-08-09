@@ -1,13 +1,10 @@
 const { Server } = require("socket.io");
 const User = require("../models/User");
 
-// Array to track currently connected online users in memory
+// Online users array
 let users = [];
 
-/**
- * Initialize Socket.io server and setup real-time event listeners
- * @param {object} server - HTTP Server instance
- */
+// Initialize Socket.io
 const initializeSocket = (server) => {
   const io = new Server(server, {
     cors: {

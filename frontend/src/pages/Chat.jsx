@@ -156,9 +156,7 @@ function Chat() {
     return `${serverUrl}/${cleanPath}`;
   };
 
-  // ==========================================
-  // 1. Initial Load & Socket Connection
-  // ==========================================
+  // Initial Load & Socket Connection
   useEffect(() => {
     const initializeChat = async () => {
       try {
@@ -349,9 +347,7 @@ function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // ==========================================
-  // 2. Select User & Load Chat
-  // ==========================================
+  // Select User & Load Chat
   const handleSelectUser = async (user) => {
     try {
       let activeUser = { ...user };
@@ -393,9 +389,7 @@ function Chat() {
     }
   };
 
-  // ==========================================
-  // 3. Send Text / Reply / Edit Message
-  // ==========================================
+  // Send Text / Reply / Edit Message
   const handleSendMessage = async (e) => {
     e?.preventDefault();
     if (!messageText.trim() || !conversationId) return;
@@ -447,9 +441,7 @@ function Chat() {
     }
   };
 
-  // ==========================================
-  // 4. File / Image Select Handler
-  // ==========================================
+  // File Upload Handler
   const handleFileOrImageUpload = async (file) => {
     if (!file || !conversationId) return;
     try {
@@ -472,9 +464,7 @@ function Chat() {
     }
   };
 
-  // ==========================================
-  // 5. Voice Note Recorder (Mic)
-  // ==========================================
+  // Voice Note Recorder
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -519,9 +509,7 @@ function Chat() {
     setAudioBlob(null);
   };
 
-  // ==========================================
-  // 6. Message Actions
-  // ==========================================
+  // Message Actions
   const handleReaction = async (msgId, emoji) => {
     try {
       const res = await addReaction(msgId, emoji);
@@ -592,9 +580,7 @@ function Chat() {
     }
   };
 
-  // ==========================================
-  // 7. WebRTC Calls
-  // ==========================================
+  // WebRTC Calls
   const startCall = async (type) => {
     if (!selectedUser) return;
     setCallType(type);
@@ -836,7 +822,7 @@ function Chat() {
     <div className={`h-screen flex overflow-hidden font-sans selection:bg-black selection:text-white transition-colors duration-300 ${themeMode === "dark" ? "bg-black text-white" : "bg-white text-black"}`}>
       {/* Hidden Audio Element for WebRTC Voice & Video Audio Streams */}
       <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
-      {/* ================= SIDEBAR ================= */}
+      {/* Sidebar */}
       <div className={`w-80 md:w-96 border-r flex flex-col z-10 transition-colors duration-300 ${themeMode === "dark" ? "bg-zinc-950 border-zinc-800" : "bg-zinc-50 border-zinc-200 shadow-xl"}`}>
         {/* User Profile Header */}
         <div className={`h-20 border-b flex items-center justify-between px-5 ${themeMode === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200"}`}>
@@ -1017,7 +1003,7 @@ function Chat() {
         </div>
       </div>
 
-      {/* ================= CHAT AREA ================= */}
+      {/* Chat Area */}
       <div className={`flex-1 flex flex-col relative overflow-hidden transition-colors duration-300 ${themeMode === "dark" ? "bg-black text-white" : "bg-white text-black"}`}>
         {!selectedUser ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center relative">
@@ -1483,7 +1469,7 @@ function Chat() {
         )}
       </div>
 
-      {/* ================= RIGHT CONTACT INFO DRAWER (WhatsApp Style) ================= */}
+      {/* Contact Info Drawer */}
       {showContactDrawer && selectedUser && (
         <div className={`w-80 md:w-96 border-l flex flex-col z-20 transition-all duration-300 ${
           themeMode === "dark" ? "bg-zinc-950 border-zinc-800 text-white" : "bg-white border-zinc-200 text-black shadow-xl"
