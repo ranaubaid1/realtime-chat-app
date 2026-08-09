@@ -234,7 +234,7 @@ function Chat() {
         scrollToBottom();
       }
 
-      // Auto refresh contacts & conversations on incoming message
+      // Auto refresh contacts, conversations & users on incoming message
       getContactsApi().then((res) => {
         if (res.success && Array.isArray(res.contacts)) {
           setSavedContacts(res.contacts);
@@ -243,6 +243,10 @@ function Chat() {
       getConversations().then((res) => {
         const convList = res.conversations || res.data || (Array.isArray(res) ? res : []);
         setUserConversations(convList);
+      });
+      getAllUsers().then((res) => {
+        const userList = res.users || res.data || (Array.isArray(res) ? res : []);
+        setUsers(userList);
       });
     });
 
@@ -733,27 +737,30 @@ function Chat() {
   };
 
   // WhatsApp / Telegram Privacy Model:
-  // Show ONLY saved contacts PLUS registered users with active conversations.
+  // Show ONLY saved contacts PLUS users with active conversations.
   // DO NOT dump every registered user from database!
-  const activeConvUserIds = (userConversations || [])
+  const activeConvUsers = (userConversations || [])
     .map((conv) => {
-      if (!conv || !conv.members) return null;
-      return conv.members.find((m) => String(m._id || m) !== String(currentUser?._id));
+      const parts = conv?.participants || conv?.members;
+      if (!parts || !Array.isArray(parts)) return null;
+      const otherUser = parts.find((m) => String(m._id || m) !== String(currentUser?._id));
+      if (!otherUser) return null;
+      if (otherUser._id) return otherUser;
+      return users.find((u) => String(u._id) === String(otherUser));
     })
     .filter(Boolean);
 
-  const activeConvUsers = users.filter((u) => {
+  const unsavedActiveUsers = activeConvUsers.filter((u) => {
     if (String(u._id) === String(currentUser?._id)) return false;
-    const hasActiveConv = activeConvUserIds.some((m) => String(m._id || m) === String(u._id));
     const isAlreadySaved = savedContacts.some(
       (sc) => String(sc._id) === String(u._id) || sc.phoneNumber === u.phoneNumber
     );
-    return hasActiveConv && !isAlreadySaved;
+    return !isAlreadySaved;
   });
 
   const allDisplayUsers = [
     ...savedContacts,
-    ...activeConvUsers,
+    ...unsavedActiveUsers.filter((u, index, self) => index === self.findIndex((t) => String(t._id) === String(u._id))),
   ];
 
   const filteredUsers = allDisplayUsers.filter((u) => {
