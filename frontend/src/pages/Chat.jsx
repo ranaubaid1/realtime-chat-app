@@ -705,31 +705,31 @@ function Chat() {
   const pinnedMessage = messages.find((m) => m.pinned);
 
   return (
-    <div className={`h-screen flex overflow-hidden font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-300 ${themeMode === "dark" ? "bg-slate-900 text-slate-100" : "bg-slate-100 text-slate-800"}`}>
+    <div className={`h-screen flex overflow-hidden font-sans selection:bg-black selection:text-white transition-colors duration-300 ${themeMode === "dark" ? "bg-black text-white" : "bg-white text-black"}`}>
       {/* Hidden Audio Element for WebRTC Voice & Video Audio Streams */}
       <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
       {/* ================= SIDEBAR ================= */}
-      <div className={`w-80 md:w-96 backdrop-blur-xl border-r flex flex-col z-10 transition-colors duration-300 ${themeMode === "dark" ? "bg-slate-900/90 border-slate-800/80" : "bg-white border-slate-200 shadow-lg"}`}>
+      <div className={`w-80 md:w-96 border-r flex flex-col z-10 transition-colors duration-300 ${themeMode === "dark" ? "bg-zinc-950 border-zinc-800" : "bg-zinc-50 border-zinc-200 shadow-xl"}`}>
         {/* User Profile Header */}
-        <div className={`h-20 border-b flex items-center justify-between px-5 ${themeMode === "dark" ? "bg-slate-950/60 border-slate-800/80" : "bg-slate-50 border-slate-200"}`}>
+        <div className={`h-20 border-b flex items-center justify-between px-5 ${themeMode === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200"}`}>
           <div className="flex items-center gap-3.5">
             <div className="relative">
               {currentUser?.profilePicture ? (
                 <img
                   src={getImageUrl(currentUser.profilePicture)}
                   alt="Me"
-                  className="w-11 h-11 rounded-2xl object-cover ring-2 ring-indigo-500/40 shadow-lg shadow-indigo-500/10"
+                  className="w-11 h-11 rounded-2xl object-cover ring-2 ring-zinc-400 shadow"
                 />
               ) : (
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-500/20">
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-lg border shadow ${themeMode === "dark" ? "bg-white text-black border-white" : "bg-black text-white border-black"}`}>
                   {(currentUser?.username || "U").charAt(0).toUpperCase()}
                 </div>
               )}
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-950 rounded-full animate-pulse"></span>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-black rounded-full animate-pulse"></span>
             </div>
             <div className="min-w-0">
-              <h1 className={`font-bold text-sm truncate ${themeMode === "dark" ? "text-slate-100" : "text-slate-800"}`}>{currentUser?.username || "My Profile"}</h1>
-              <p className="text-[11px] text-emerald-400 font-medium tracking-wide">Online</p>
+              <h1 className={`font-bold text-sm truncate ${themeMode === "dark" ? "text-white" : "text-black"}`}>{currentUser?.username || "My Profile"}</h1>
+              <p className="text-[11px] text-emerald-500 font-medium tracking-wide">Online</p>
             </div>
           </div>
 
@@ -737,10 +737,10 @@ function Chat() {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleThemeMode}
-              className={`p-2.5 rounded-xl transition-all duration-200 border shadow ${
+              className={`p-2.5 rounded-xl transition-all duration-200 border font-bold shadow ${
                 themeMode === "dark"
-                  ? "bg-slate-800/80 hover:bg-slate-700 text-amber-300 border-slate-700"
-                  : "bg-slate-100 hover:bg-slate-200 text-indigo-600 border-slate-300"
+                  ? "bg-zinc-900 hover:bg-zinc-800 text-amber-300 border-zinc-800"
+                  : "bg-zinc-100 hover:bg-zinc-200 text-black border-zinc-300"
               }`}
               title={themeMode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
@@ -754,7 +754,11 @@ function Chat() {
                 setContactNameInput("");
                 setContactPhoneInput("");
               }}
-              className="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 hover:text-indigo-200 rounded-xl transition-all duration-200 border border-indigo-500/30 font-semibold text-xs flex items-center gap-1.5 shadow"
+              className={`px-3 py-2 rounded-xl transition-all duration-200 font-bold text-xs flex items-center gap-1.5 shadow ${
+                themeMode === "dark"
+                  ? "bg-white hover:bg-zinc-200 text-black border border-white"
+                  : "bg-black hover:bg-zinc-800 text-white border border-black"
+              }`}
               title="Add New Contact by Name & Phone"
             >
               <span className="text-sm font-bold">➕</span>
@@ -765,8 +769,8 @@ function Chat() {
               onClick={() => navigate("/profile")}
               className={`p-2.5 rounded-xl transition-all duration-200 border ${
                 themeMode === "dark"
-                  ? "hover:bg-slate-800/80 text-slate-400 hover:text-white border-slate-800"
-                  : "hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200"
+                  ? "hover:bg-zinc-800 text-zinc-300 hover:text-white border-zinc-800"
+                  : "hover:bg-zinc-200 text-zinc-700 hover:text-black border-zinc-300"
               }`}
               title="Edit Profile"
             >
@@ -776,20 +780,20 @@ function Chat() {
         </div>
 
         {/* Search Bar */}
-        <div className={`p-4 border-b ${themeMode === "dark" ? "border-slate-800/50" : "border-slate-200"}`}>
+        <div className={`p-4 border-b ${themeMode === "dark" ? "border-zinc-800" : "border-zinc-200"}`}>
           <div className="relative">
             <input
               type="text"
-              placeholder="Search conversations..."
+              placeholder="Search contacts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all ${
+              className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 transition-all ${
                 themeMode === "dark"
-                  ? "bg-slate-950/50 border-slate-800 text-slate-200 placeholder-slate-500"
-                  : "bg-slate-100 border-slate-200 text-slate-800 placeholder-slate-400"
+                  ? "bg-zinc-900 border-zinc-800 text-white placeholder-zinc-500 focus:ring-white"
+                  : "bg-white border-zinc-300 text-black placeholder-zinc-400 focus:ring-black"
               }`}
             />
-            <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">🔍</span>
+            <span className="absolute left-3.5 top-2.5 text-zinc-400 text-sm">🔍</span>
           </div>
         </div>
 
@@ -811,11 +815,11 @@ function Chat() {
                   className={`p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer transition-all duration-200 group ${
                     isSelected
                       ? themeMode === "dark"
-                        ? "bg-gradient-to-r from-indigo-600/30 to-violet-600/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/5"
-                        : "bg-indigo-50 border border-indigo-200 shadow-sm text-slate-900"
+                        ? "bg-white text-black font-semibold border-l-4 border-white shadow-md"
+                        : "bg-black text-white font-semibold shadow-md"
                       : themeMode === "dark"
-                      ? "hover:bg-slate-800/50 border border-transparent"
-                      : "hover:bg-slate-100 border border-transparent text-slate-700"
+                      ? "hover:bg-zinc-900 text-zinc-300 border border-transparent"
+                      : "hover:bg-zinc-200 text-zinc-800 border border-transparent"
                   }`}
                 >
                   <div className="relative flex-shrink-0">
@@ -859,20 +863,19 @@ function Chat() {
       </div>
 
       {/* ================= CHAT AREA ================= */}
-      <div className={`flex-1 flex flex-col relative overflow-hidden transition-colors duration-300 ${themeMode === "dark" ? "bg-slate-950" : "bg-slate-50"}`}>
+      <div className={`flex-1 flex flex-col relative overflow-hidden transition-colors duration-300 ${themeMode === "dark" ? "bg-black text-white" : "bg-white text-black"}`}>
         {!selectedUser ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
             <div className={`w-24 h-24 rounded-3xl flex items-center justify-center text-4xl mb-5 border shadow-2xl ${
               themeMode === "dark"
-                ? "bg-gradient-to-tr from-indigo-600/20 to-violet-600/20 border-indigo-500/20 shadow-indigo-500/10"
-                : "bg-white border-indigo-200 shadow-slate-200"
+                ? "bg-zinc-900 border-zinc-800 text-white"
+                : "bg-zinc-100 border-zinc-300 text-black shadow-zinc-200"
             }`}>
-              ✨
+              💬
             </div>
-            <h2 className={`text-3xl font-extrabold tracking-tight ${themeMode === "dark" ? "text-slate-100" : "text-slate-800"}`}>Realtime Chat Experience</h2>
-            <p className={`max-w-md mt-3 text-sm leading-relaxed ${themeMode === "dark" ? "text-slate-400" : "text-slate-500"}`}>
-              Select a conversation from the sidebar to send encrypted messages, share high-res photos, voice notes, and make HD calls!
+            <h2 className={`text-3xl font-extrabold tracking-tight ${themeMode === "dark" ? "text-white" : "text-black"}`}>Black & White Realtime Chat</h2>
+            <p className={`max-w-md mt-3 text-sm leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+              Select a contact to start chatting, sharing high quality photos, voice notes, documents, and making HD calls!
             </p>
           </div>
         ) : (
@@ -889,8 +892,8 @@ function Chat() {
                 </div>
               </div>
             )}
-            <div className={`h-20 backdrop-blur-xl border-b px-6 flex items-center justify-between z-10 transition-colors duration-300 ${
-              themeMode === "dark" ? "bg-slate-900/80 border-slate-800/80" : "bg-white border-slate-200 shadow-sm"
+            <div className={`h-20 border-b px-6 flex items-center justify-between z-10 transition-colors duration-300 ${
+              themeMode === "dark" ? "bg-zinc-900 border-zinc-800 text-white" : "bg-white border-zinc-200 text-black shadow-sm"
             }`}>
               <div className="flex items-center gap-3.5">
                 {selectedUser.profilePicture ? (
@@ -978,10 +981,12 @@ function Chat() {
                         <div
                           className={`px-4 py-3 rounded-2xl relative shadow-md transition-all duration-200 ${
                             isMine
-                              ? "bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white rounded-br-none"
+                              ? themeMode === "dark"
+                                ? "bg-white text-black rounded-br-none font-medium shadow-md shadow-white/10"
+                                : "bg-black text-white rounded-br-none font-medium shadow-md"
                               : themeMode === "dark"
-                              ? "bg-slate-900 text-slate-200 border border-slate-800/80 rounded-bl-none shadow-black/40"
-                              : "bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm"
+                              ? "bg-zinc-900 text-white border border-zinc-800 rounded-bl-none"
+                              : "bg-zinc-100 text-black border border-zinc-200 rounded-bl-none shadow-sm"
                           }`}
                         >
                           {/* Image */}
@@ -1192,14 +1197,14 @@ function Chat() {
             )}
 
             {/* Footer Input Form */}
-            <form onSubmit={handleSendMessage} className={`backdrop-blur-xl border-t p-4 flex items-center gap-3 transition-colors duration-300 ${
-              themeMode === "dark" ? "bg-slate-900/80 border-slate-800/80" : "bg-white border-slate-200 shadow-md"
+            <form onSubmit={handleSendMessage} className={`border-t p-4 flex items-center gap-3 transition-colors duration-300 ${
+              themeMode === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-md"
             }`}>
               {/* File Attachment */}
               <label
                 htmlFor="file-input"
                 className={`p-1.5 rounded-2xl cursor-pointer transition border flex items-center justify-center ${
-                  themeMode === "dark" ? "bg-slate-800 hover:bg-slate-700 border-slate-700/60" : "bg-slate-100 hover:bg-slate-200 border-slate-300"
+                  themeMode === "dark" ? "bg-zinc-800 hover:bg-zinc-700 border-zinc-700" : "bg-zinc-100 hover:bg-zinc-200 border-zinc-300"
                 }`}
                 title="Attach Photo or Document"
               >
@@ -1231,10 +1236,10 @@ function Chat() {
                     : "Type a message..."
                 }
                 disabled={isRecording || selectedUser?.isUnregistered}
-                className={`flex-1 px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:bg-rose-950/20 transition ${
+                className={`flex-1 px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 disabled:opacity-50 transition ${
                   themeMode === "dark"
-                    ? "bg-slate-950/60 border-slate-800 text-slate-100 placeholder-slate-500"
-                    : "bg-slate-100 border-slate-200 text-slate-800 placeholder-slate-400"
+                    ? "bg-black border-zinc-800 text-white placeholder-zinc-500 focus:ring-white"
+                    : "bg-zinc-100 border-zinc-300 text-black placeholder-zinc-400 focus:ring-black"
                 }`}
               />
 
@@ -1252,7 +1257,9 @@ function Chat() {
                   type="button"
                   onClick={startRecording}
                   disabled={selectedUser?.isUnregistered}
-                  className="p-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-2xl transition border border-slate-700/60 flex items-center justify-center"
+                  className={`p-1.5 rounded-2xl transition border flex items-center justify-center disabled:opacity-40 ${
+                    themeMode === "dark" ? "bg-zinc-800 hover:bg-zinc-700 border-zinc-700" : "bg-zinc-100 hover:bg-zinc-200 border-zinc-300"
+                  }`}
                   title="Record Voice Note"
                 >
                   <img src={micIcon} alt="Voice Note" className="w-8 h-8 rounded-xl object-cover shadow" />
@@ -1263,7 +1270,11 @@ function Chat() {
               <button
                 type="submit"
                 disabled={!messageText.trim() || sending || selectedUser?.isUnregistered}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-40 text-white font-semibold rounded-2xl transition text-sm shadow-lg shadow-indigo-500/20"
+                className={`px-6 py-3 font-bold rounded-2xl transition text-sm shadow-md disabled:opacity-40 ${
+                  themeMode === "dark"
+                    ? "bg-white hover:bg-zinc-200 text-black shadow-white/10"
+                    : "bg-black hover:bg-zinc-800 text-white shadow-black/20"
+                }`}
               >
                 {sending ? "Sending..." : "Send"}
               </button>
