@@ -815,11 +815,11 @@ function Chat() {
                   className={`p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer transition-all duration-200 group ${
                     isSelected
                       ? themeMode === "dark"
-                        ? "bg-white text-black font-semibold border-l-4 border-white shadow-md"
+                        ? "bg-white text-black font-semibold border-l-4 border-black shadow-md"
                         : "bg-black text-white font-semibold shadow-md"
                       : themeMode === "dark"
                       ? "hover:bg-zinc-900 text-zinc-300 border border-transparent"
-                      : "hover:bg-zinc-200 text-zinc-800 border border-transparent"
+                      : "hover:bg-zinc-200 text-zinc-900 border border-transparent"
                   }`}
                 >
                   <div className="relative flex-shrink-0">
@@ -827,29 +827,41 @@ function Chat() {
                       <img
                         src={getImageUrl(user.profilePicture)}
                         alt={user.username}
-                        className="w-12 h-12 rounded-2xl object-cover ring-1 ring-slate-700 group-hover:ring-slate-600 transition"
+                        className="w-12 h-12 rounded-2xl object-cover ring-2 ring-zinc-400"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-700/60 shadow">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg border shadow ${
+                        isSelected
+                          ? themeMode === "dark" ? "bg-black text-white border-black" : "bg-white text-black border-white"
+                          : themeMode === "dark" ? "bg-zinc-900 text-white border-zinc-800" : "bg-zinc-200 text-zinc-900 border-zinc-300"
+                      }`}>
                         {(user.username || user.phoneNumber || "U").charAt(0).toUpperCase()}
                       </div>
                     )}
                     {isOnline && (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm"></span>
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></span>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-1">
-                      <h2 className="font-semibold text-slate-200 truncate text-sm group-hover:text-white transition">
+                      <h2 className={`font-bold truncate text-sm transition ${
+                        isSelected
+                          ? themeMode === "dark" ? "text-black" : "text-white"
+                          : themeMode === "dark" ? "text-white group-hover:text-white" : "text-zinc-900 group-hover:text-black"
+                      }`}>
                         {user.username || user.phoneNumber}
                       </h2>
                     </div>
-                    <p className="text-xs text-slate-400 truncate">
+                    <p className={`text-xs truncate ${
+                      isSelected
+                        ? themeMode === "dark" ? "text-zinc-800" : "text-zinc-300"
+                        : themeMode === "dark" ? "text-zinc-400" : "text-zinc-600"
+                    }`}>
                       {user.isUnregistered ? (
-                        <span className="text-rose-400 font-medium">⚠️ No Account</span>
+                        <span className="text-rose-500 font-medium">⚠️ No Account</span>
                       ) : isOnline ? (
-                        <span className="text-emerald-400 font-medium">● Online</span>
+                        <span className="text-emerald-500 font-medium">● Online</span>
                       ) : (
                         user.about || "Hey there! I am using Realtime Chat."
                       )}
