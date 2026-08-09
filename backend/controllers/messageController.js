@@ -135,10 +135,17 @@ const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
 
-    const messages = await Message.find({
+    const userId = req.user?.userId;
+
+    const query = {
       conversation: conversationId,
-      deletedForEveryone: false,
-    })
+    };
+
+    if (userId) {
+      query.deletedFor = { $ne: userId };
+    }
+
+    const messages = await Message.find(query)
       .populate("sender", "username profilePicture")
       .populate("replyTo")
       .sort({ createdAt: 1 });

@@ -5,21 +5,35 @@ import VerifyOtp from "../pages/VerifyOtp";
 import Chat from "../pages/Chat";
 import Home from "../pages/Home";
 import Profile from "../pages/Profile";
+import ProtectedRoute from "./ProtectedRoute";
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-
       <Route path="/verify-otp" element={<VerifyOtp />} />
-
       <Route path="/home" element={<Home />} />
 
-      <Route path="/chat" element={<Chat />} />
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <Chat />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route path="/profile" element={<Profile />} />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Unknown URL → Login */}
+      {/* Default root redirect & wildcard fallback */}
+      <Route path="/" element={<Navigate to="/chat" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import socket from "../services/socket";
 
-import { getAllUsers, getProfile } from "../api/userServices";
+import { getAllUsers, getProfile, addContactApi, getContactsApi } from "../api/userServices";
 import { createConversation, getConversations } from "../api/conversationServices";
 import {
   getMessages,
@@ -50,72 +50,53 @@ function Chat() {
   const [contactNameInput, setContactNameInput] = useState("");
   const [contactPhoneInput, setContactPhoneInput] = useState("");
   const [addContactMessage, setAddContactMessage] = useState({ text: "", type: "" });
-  const [savedContacts, setSavedContacts] = useState(() => {
-    try {
-      const saved = localStorage.getItem("saved_contacts");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [savedContacts, setSavedContacts] = useState([]);
 
-  const handleSaveNewContact = (e) => {
+  const handleSaveNewContact = async (e) => {
     e?.preventDefault();
     setAddContactMessage({ text: "", type: "" });
     const name = contactNameInput.trim();
     const phone = contactPhoneInput.trim();
     if (!name || !phone) return;
 
-    // Check if phone matches any registered user in database
-    const registeredUser = users.find((u) => {
-      if (u._id === currentUser?._id) return false;
-      return (
-        u.phoneNumber?.trim().toLowerCase() === phone.toLowerCase() ||
-        (u.username && u.username.trim().toLowerCase() === name.toLowerCase())
-      );
-    });
+    try {
+      const res = await addContactApi(name, phone);
+      const newContactObj = res.contact;
 
-    const newContactObj = {
-      _id: registeredUser ? registeredUser._id : `unreg_${Date.now()}`,
-      username: name,
-      phoneNumber: phone,
-      profilePicture: registeredUser?.profilePicture || "",
-      about: registeredUser?.about || "",
-      isUnregistered: !registeredUser,
-    };
+      const updatedList = [
+        ...savedContacts.filter((c) => c.phoneNumber !== phone),
+        newContactObj,
+      ];
+      setSavedContacts(updatedList);
 
-    // Save to list & localStorage
-    const updatedList = [
-      ...savedContacts.filter((c) => c.phoneNumber !== phone),
-      newContactObj,
-    ];
-    setSavedContacts(updatedList);
-    localStorage.setItem("saved_contacts", JSON.stringify(updatedList));
-
-    if (registeredUser) {
-      setAddContactMessage({
-        text: `✅ Contact "${name}" added successfully! Account found. Opening chat...`,
-        type: "success",
-      });
-      setTimeout(() => {
-        handleSelectUser(registeredUser);
-        setShowAddContactModal(false);
-        setContactNameInput("");
-        setContactPhoneInput("");
-        setAddContactMessage({ text: "", type: "" });
-      }, 1000);
-    } else {
-      setAddContactMessage({
-        text: `⚠️ Contact "${name}" (${phone}) added to list, but this person has NO registered account on Realtime Chat yet. They cannot send or receive messages until they register!`,
-        type: "warning",
-      });
-      setTimeout(() => {
-        handleSelectUser(newContactObj);
-        setShowAddContactModal(false);
-        setContactNameInput("");
-        setContactPhoneInput("");
-        setAddContactMessage({ text: "", type: "" });
-      }, 3500);
+      if (res.isRegistered) {
+        setAddContactMessage({
+          text: `✅ Contact "${name}" saved to database! Account found. Opening chat...`,
+          type: "success",
+        });
+        setTimeout(() => {
+          handleSelectUser(newContactObj);
+          setShowAddContactModal(false);
+          setContactNameInput("");
+          setContactPhoneInput("");
+          setAddContactMessage({ text: "", type: "" });
+        }, 1000);
+      } else {
+        setAddContactMessage({
+          text: `⚠️ Contact "${name}" (${phone}) saved to database, but this person has NO registered account on Realtime Chat yet. They cannot send or receive messages until they register!`,
+          type: "warning",
+        });
+        setTimeout(() => {
+          handleSelectUser(newContactObj);
+          setShowAddContactModal(false);
+          setContactNameInput("");
+          setContactPhoneInput("");
+          setAddContactMessage({ text: "", type: "" });
+        }, 3500);
+      }
+    } catch (err) {
+      console.error("Save contact error:", err);
+      setAddContactMessage({ text: "Failed to save contact to database.", type: "warning" });
     }
   };
 
@@ -145,7 +126,10 @@ function Chat() {
     if (!path) return "";
     if (path.startsWith("http://") || path.startsWith("https://")) return path;
     const cleanPath = path.replace(/^public[\\/]/, "").replace(/\\/g, "/");
-    return `http://localhost:5000/${cleanPath}`;
+    const serverUrl =
+      import.meta.env.VITE_SERVER_URL ||
+      (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api$/, "") : "http://localhost:5000");
+    return `${serverUrl}/${cleanPath}`;
   };
 
   // ==========================================
@@ -167,6 +151,11 @@ function Chat() {
         const usersRes = await getAllUsers();
         const userList = usersRes.users || usersRes.data || (Array.isArray(usersRes) ? usersRes : []);
         setUsers(userList);
+
+        const contactsRes = await getContactsApi();
+        if (contactsRes.success && Array.isArray(contactsRes.contacts)) {
+          setSavedContacts(contactsRes.contacts);
+        }
 
         if (!socket.connected) {
           socket.connect();

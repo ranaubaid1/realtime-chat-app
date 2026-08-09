@@ -197,4 +197,100 @@ const searchUsers = async (req, res) => {
     });
   }
 };
-module.exports = { registerUser, loginUser, verifyOtp, getprofile, updateProfile, allUsers, searchUsers }; 
+const addContact = async (req, res) => {
+  try {
+    const { name, phoneNumber } = req.body;
+    const userId = req.user.userId;
+
+    if (!name || !phoneNumber) {
+      return res.status(400).json({ success: false, message: "Name and Phone Number are required" });
+    }
+
+    const cleanPhone = phoneNumber.trim();
+
+    const registeredUser = await User.findOne({
+      $or: [
+        { phoneNumber: cleanPhone },
+        { username: { $regex: `^${name.trim()}$`, $options: "i" } }
+      ]
+    });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    user.contacts = user.contacts.filter((c) => c.phoneNumber !== cleanPhone);
+
+    const contactObj = {
+      name: name.trim(),
+      phoneNumber: cleanPhone,
+      contactUser: registeredUser ? registeredUser._id : null,
+      isUnregistered: !registeredUser,
+    };
+
+    user.contacts.push(contactObj);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: registeredUser ? "Contact added successfully!" : "Contact added, but user has no account yet.",
+      contact: {
+        _id: registeredUser ? registeredUser._id : `unreg_${Date.now()}`,
+        username: name.trim(),
+        phoneNumber: cleanPhone,
+        profilePicture: registeredUser?.profilePicture || "",
+        about: registeredUser?.about || "",
+        isUnregistered: !registeredUser,
+      },
+      isRegistered: !!registeredUser,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getContacts = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const user = await User.findById(userId).populate("contacts.contactUser", "username phoneNumber profilePicture about isOnline lastSeen");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const formattedContacts = user.contacts.map((c) => {
+      if (c.contactUser) {
+        return {
+          _id: c.contactUser._id,
+          username: c.name || c.contactUser.username,
+          phoneNumber: c.contactUser.phoneNumber,
+          profilePicture: c.contactUser.profilePicture,
+          about: c.contactUser.about,
+          isOnline: c.contactUser.isOnline,
+          isUnregistered: false,
+        };
+      }
+      return {
+        _id: `unreg_${c._id}`,
+        username: c.name,
+        phoneNumber: c.phoneNumber,
+        profilePicture: "",
+        about: "",
+        isOnline: false,
+        isUnregistered: true,
+      };
+    });
+
+    res.status(200).json({ success: true, contacts: formattedContacts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  verifyOtp,
+  getprofile,
+  updateProfile,
+  allUsers,
+  searchUsers,
+  addContact,
+  getContacts,
+}; 

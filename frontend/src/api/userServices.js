@@ -19,3 +19,13 @@ export const searchUsersApi = async (query) => {
   const response = await api.get(`/users/search?search=${query}`);
   return response.data;
 };
+
+export const addContactApi = async (name, phoneNumber) => {
+  const response = await api.post("/users/contacts", { name, phoneNumber });
+  return response.data;
+};
+
+export const getContactsApi = async () => {
+  const response = await api.get("/users/contacts");
+  return response.data;
+};
