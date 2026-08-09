@@ -32,6 +32,7 @@ function Chat() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [conversationId, setConversationId] = useState(null);
+  const [userConversations, setUserConversations] = useState([]);
 
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
@@ -167,6 +168,10 @@ function Chat() {
         if (contactsRes.success && Array.isArray(contactsRes.contacts)) {
           setSavedContacts(contactsRes.contacts);
         }
+
+        const convRes = await getConversations();
+        const convList = convRes.conversations || convRes.data || (Array.isArray(convRes) ? convRes : []);
+        setUserConversations(convList);
 
         if (!socket.connected) {
           socket.connect();
@@ -707,9 +712,9 @@ function Chat() {
   // WhatsApp / Telegram Privacy Model:
   // Show ONLY saved contacts PLUS registered users with active conversations.
   // DO NOT dump every registered user from database!
-  const activeConvUserIds = conversations
+  const activeConvUserIds = (userConversations || [])
     .map((conv) => {
-      if (!conv.members) return null;
+      if (!conv || !conv.members) return null;
       return conv.members.find((m) => String(m._id || m) !== String(currentUser?._id));
     })
     .filter(Boolean);
