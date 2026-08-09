@@ -49,7 +49,7 @@ const initializeSocket = (server) => {
 
     // Event: Send real-time private message
     socket.on("private-message", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("private-message", data);
       }
@@ -57,7 +57,7 @@ const initializeSocket = (server) => {
 
     // Event: User starts typing
     socket.on("typing", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("typing", data);
       }
@@ -65,7 +65,7 @@ const initializeSocket = (server) => {
 
     // Event: User stops typing
     socket.on("stop-typing", (data) => {
-      const receiver = users.find((u) => u.id === data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
       if (receiver) {
         io.to(receiver.socketId).emit("stop-typing", data);
       }

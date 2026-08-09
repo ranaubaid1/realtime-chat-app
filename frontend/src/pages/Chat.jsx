@@ -220,8 +220,30 @@ function Chat() {
 
     socket.on("private-message", (newMsg) => {
       const msgData = newMsg.data || newMsg;
-      setMessages((prev) => [...prev, msgData]);
-      scrollToBottom();
+      const msgSenderId = msgData.sender?._id || msgData.sender || newMsg.senderId;
+      const msgConvId = msgData.conversation || newMsg.conversationId;
+
+      if (
+        (selectedUser && String(msgSenderId) === String(selectedUser._id)) ||
+        (conversationId && String(msgConvId) === String(conversationId))
+      ) {
+        setMessages((prev) => {
+          if (prev.some((m) => String(m._id) === String(msgData._id))) return prev;
+          return [...prev, msgData];
+        });
+        scrollToBottom();
+      }
+
+      // Auto refresh contacts & conversations on incoming message
+      getContactsApi().then((res) => {
+        if (res.success && Array.isArray(res.contacts)) {
+          setSavedContacts(res.contacts);
+        }
+      });
+      getConversations().then((res) => {
+        const convList = res.conversations || res.data || (Array.isArray(res) ? res : []);
+        setUserConversations(convList);
+      });
     });
 
     socket.on("typing", (data) => {
