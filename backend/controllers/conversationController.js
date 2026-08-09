@@ -1,22 +1,52 @@
+const mongoose = require("mongoose");
 const Conversation = require("../models/Conversation");
+const User = require("../models/User");
 
 // Create or get existing conversation
 const createConversation = async (req, res) => {
   try {
-    const { receiverId } = req.body;
+    const { receiverId, phoneNumber } = req.body;
     const senderId = req.user.userId;
+
+    let targetUserId = receiverId;
+
+    // Fallback: If receiverId is not a valid ObjectId, resolve by phone number
+    if (!targetUserId || !mongoose.Types.ObjectId.isValid(targetUserId)) {
+      if (phoneNumber) {
+        const cleanPhone = phoneNumber.trim();
+        const phoneDigits = cleanPhone.replace(/\D/g, "");
+        const last10 = phoneDigits.length >= 7 ? phoneDigits.slice(-10) : phoneDigits;
+
+        const foundUser = await User.findOne({
+          $or: [
+            { phoneNumber: cleanPhone },
+            { phoneNumber: { $regex: `${last10}$` } },
+          ],
+        });
+        if (foundUser) {
+          targetUserId = foundUser._id;
+        }
+      }
+    }
+
+    if (!targetUserId || !mongoose.Types.ObjectId.isValid(targetUserId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Target user has not registered an account yet.",
+      });
+    }
 
     // Check if conversation already exists
     let conversation = await Conversation.findOne({
       participants: {
-        $all: [senderId, receiverId],
+        $all: [senderId, targetUserId],
       },
     });
 
     // If conversation does not exist, create it
     if (!conversation) {
       conversation = await Conversation.create({
-        participants: [senderId, receiverId],
+        participants: [senderId, targetUserId],
       });
     }
 

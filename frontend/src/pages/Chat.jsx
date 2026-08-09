@@ -343,9 +343,9 @@ function Chat() {
       setReplyingTo(null);
       setEditingMessage(null);
 
-      const convRes = await createConversation(user._id);
+      const convRes = await createConversation(user._id, user.phoneNumber);
       const conv = convRes.conversation || convRes.data || convRes;
-      const cId = conv._id;
+      const cId = conv?._id;
 
       if (cId) {
         setConversationId(cId);
