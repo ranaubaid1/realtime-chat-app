@@ -21,18 +21,23 @@ const initializeSocket = (server) => {
     // Event: User logs in or joins chat
     socket.on("join", async (data) => {
       try {
-        socket.userId = data.id;
+        if (!data || !data.id) return;
+        const uidStr = String(data.id);
+        socket.userId = uidStr;
 
         // Update online status in database
-        await User.findByIdAndUpdate(data.id, {
+        await User.findByIdAndUpdate(uidStr, {
           isOnline: true,
         });
 
-        // Store user details in online users array
-        const existingUser = users.find((u) => u.id === data.id);
-        if (!existingUser) {
+        // Store or update user details in online users array
+        const existingIndex = users.findIndex((u) => String(u.id || u._id) === uidStr);
+        if (existingIndex !== -1) {
+          users[existingIndex].socketId = socket.id;
+          users[existingIndex].username = data.username || users[existingIndex].username;
+        } else {
           users.push({
-            id: data.id,
+            id: uidStr,
             username: data.username,
             socketId: socket.id,
           });
@@ -40,7 +45,7 @@ const initializeSocket = (server) => {
 
         // Broadcast online users list to all clients
         io.emit("online-users", users);
-        io.emit("user-online", data.id);
+        io.emit("user-online", uidStr);
 
       } catch (error) {
         console.log("Join event error:", error.message);
@@ -49,31 +54,41 @@ const initializeSocket = (server) => {
 
     // Event: Send real-time private message
     socket.on("private-message", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
-      if (receiver) {
-        io.to(receiver.socketId).emit("private-message", data);
-      }
+      if (!data || !data.receiverId) return;
+      const targetId = String(data.receiverId);
+      const targetSockets = users.filter((u) => String(u.id || u._id) === targetId);
+
+      targetSockets.forEach((rec) => {
+        io.to(rec.socketId).emit("private-message", data);
+      });
     });
 
     // Event: User starts typing
     socket.on("typing", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
-      if (receiver) {
-        io.to(receiver.socketId).emit("typing", data);
-      }
+      if (!data || !data.receiverId) return;
+      const targetId = String(data.receiverId);
+      const targetSockets = users.filter((u) => String(u.id || u._id) === targetId);
+
+      targetSockets.forEach((rec) => {
+        io.to(rec.socketId).emit("typing", data);
+      });
     });
 
     // Event: User stops typing
     socket.on("stop-typing", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
-      if (receiver) {
-        io.to(receiver.socketId).emit("stop-typing", data);
-      }
+      if (!data || !data.receiverId) return;
+      const targetId = String(data.receiverId);
+      const targetSockets = users.filter((u) => String(u.id || u._id) === targetId);
+
+      targetSockets.forEach((rec) => {
+        io.to(rec.socketId).emit("stop-typing", data);
+      });
     });
 
     // Event: Initiate Voice/Video Call
     socket.on("call-user", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
+      const targetId = String(data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === targetId);
       if (receiver) {
         io.to(receiver.socketId).emit("incoming-call", data);
       }
@@ -81,7 +96,8 @@ const initializeSocket = (server) => {
 
     // Event: Accept incoming call
     socket.on("accept-call", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
+      const targetId = String(data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === targetId);
       if (receiver) {
         io.to(receiver.socketId).emit("call-accepted", data);
       }
@@ -89,7 +105,8 @@ const initializeSocket = (server) => {
 
     // Event: Reject incoming call
     socket.on("reject-call", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
+      const targetId = String(data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === targetId);
       if (receiver) {
         io.to(receiver.socketId).emit("call-rejected", data);
       }
@@ -97,7 +114,8 @@ const initializeSocket = (server) => {
 
     // Event: End ongoing call
     socket.on("end-call", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
+      const targetId = String(data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === targetId);
       if (receiver) {
         io.to(receiver.socketId).emit("call-ended", data);
       }
@@ -105,7 +123,8 @@ const initializeSocket = (server) => {
 
     // WebRTC Signaling: Send Offer
     socket.on("offer", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
+      const targetId = String(data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === targetId);
       if (receiver) {
         io.to(receiver.socketId).emit("offer", {
           offer: data.offer,
@@ -116,7 +135,8 @@ const initializeSocket = (server) => {
 
     // WebRTC Signaling: Send Answer
     socket.on("answer", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
+      const targetId = String(data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === targetId);
       if (receiver) {
         io.to(receiver.socketId).emit("answer", {
           answer: data.answer,
@@ -125,9 +145,10 @@ const initializeSocket = (server) => {
       }
     });
 
-    // WebRTC Signaling: ICE Candidate exchange
+    // WebRTC Signaling: ICE Candidate
     socket.on("ice-candidate", (data) => {
-      const receiver = users.find((u) => String(u.id || u._id) === String(data.receiverId));
+      const targetId = String(data.receiverId);
+      const receiver = users.find((u) => String(u.id || u._id) === targetId);
       if (receiver) {
         io.to(receiver.socketId).emit("ice-candidate", {
           candidate: data.candidate,
@@ -145,20 +166,17 @@ const initializeSocket = (server) => {
     socket.on("disconnect", async () => {
       try {
         if (socket.userId) {
-          // Update status in database to offline
-          await User.findByIdAndUpdate(socket.userId, {
+          const uidStr = String(socket.userId);
+          await User.findByIdAndUpdate(uidStr, {
             isOnline: false,
             lastSeen: new Date(),
           });
 
-          // Remove user from active online users list
-          users = users.filter((u) => u.id !== socket.userId);
+          users = users.filter((u) => !(String(u.id || u._id) === uidStr && u.socketId === socket.id));
 
-          // Broadcast updated online list
           io.emit("online-users", users);
-          io.emit("user-offline", socket.userId);
+          io.emit("user-offline", uidStr);
         }
-
       } catch (error) {
         console.log("Disconnect event error:", error.message);
       }
