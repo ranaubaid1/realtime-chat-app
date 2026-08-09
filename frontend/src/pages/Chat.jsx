@@ -52,6 +52,7 @@ function Chat() {
   const [contactPhoneInput, setContactPhoneInput] = useState("");
   const [addContactMessage, setAddContactMessage] = useState({ text: "", type: "" });
   const [savedContacts, setSavedContacts] = useState([]);
+  const [showContactDrawer, setShowContactDrawer] = useState(false);
 
   // Theme Mode State ('dark' | 'light')
   const [themeMode, setThemeMode] = useState(() => {
@@ -964,7 +965,12 @@ function Chat() {
             <div className={`h-20 border-b px-6 flex items-center justify-between z-10 transition-colors duration-300 ${
               themeMode === "dark" ? "bg-zinc-900 border-zinc-800 text-white" : "bg-white border-zinc-200 text-black shadow-sm"
             }`}>
-              <div className="flex items-center gap-3.5">
+              {/* Clickable Header Area to open Drawer */}
+              <div
+                onClick={() => setShowContactDrawer((prev) => !prev)}
+                className="flex items-center gap-3.5 cursor-pointer p-1.5 -ml-1.5 rounded-2xl hover:bg-zinc-500/10 transition"
+                title="Click to view Phone Number & About details"
+              >
                 {selectedUser.profilePicture ? (
                   <img
                     src={getImageUrl(selectedUser.profilePicture)}
@@ -977,8 +983,9 @@ function Chat() {
                   </div>
                 )}
                 <div>
-                  <h2 className={`font-bold text-base ${themeMode === "dark" ? "text-white" : "text-black"}`}>
-                    {selectedUser.username || selectedUser.phoneNumber}
+                  <h2 className={`font-bold text-base flex items-center gap-1.5 ${themeMode === "dark" ? "text-white" : "text-black"}`}>
+                    <span>{selectedUser.username || selectedUser.phoneNumber}</span>
+                    <span className="text-xs text-indigo-400 font-normal">ℹ️</span>
                   </h2>
                   <p className={`text-xs ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
                     {typing ? (
@@ -992,8 +999,8 @@ function Chat() {
                 </div>
               </div>
 
-              {/* Call Buttons */}
-              <div className="flex items-center gap-3">
+              {/* Call & Info Buttons */}
+              <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => startCall("voice")}
                   className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-2xl border border-emerald-500/20 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
@@ -1007,6 +1014,19 @@ function Chat() {
                   title="Video Call"
                 >
                   <img src={videoCallIcon} alt="Video Call" className="w-8 h-8 rounded-xl object-cover shadow" />
+                </button>
+                <button
+                  onClick={() => setShowContactDrawer((prev) => !prev)}
+                  className={`p-2 rounded-2xl border transition flex items-center justify-center font-bold text-sm shadow ${
+                    showContactDrawer
+                      ? "bg-indigo-600 text-white border-indigo-500"
+                      : themeMode === "dark"
+                      ? "bg-zinc-800 text-zinc-300 hover:text-white border-zinc-700"
+                      : "bg-zinc-100 text-zinc-700 hover:text-black border-zinc-300"
+                  }`}
+                  title="View Contact Phone & About Details"
+                >
+                  ℹ️
                 </button>
               </div>
             </div>
@@ -1375,6 +1395,113 @@ function Chat() {
           </>
         )}
       </div>
+
+      {/* ================= RIGHT CONTACT INFO DRAWER (WhatsApp Style) ================= */}
+      {showContactDrawer && selectedUser && (
+        <div className={`w-80 md:w-96 border-l flex flex-col z-20 transition-all duration-300 ${
+          themeMode === "dark" ? "bg-zinc-950 border-zinc-800 text-white" : "bg-white border-zinc-200 text-black shadow-xl"
+        }`}>
+          {/* Drawer Header */}
+          <div className={`h-20 border-b px-5 flex items-center justify-between ${
+            themeMode === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-50 border-zinc-200"
+          }`}>
+            <h3 className="font-bold text-base flex items-center gap-2">
+              <span>👤</span> Contact Info
+            </h3>
+            <button
+              onClick={() => setShowContactDrawer(false)}
+              className={`p-1.5 rounded-xl font-bold transition text-sm ${
+                themeMode === "dark" ? "hover:bg-zinc-800 text-zinc-400 hover:text-white" : "hover:bg-zinc-200 text-zinc-500 hover:text-black"
+              }`}
+            >
+              ✖
+            </button>
+          </div>
+
+          {/* Drawer Body Scroll */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+            {/* Profile Picture Card */}
+            <div className="flex flex-col items-center text-center">
+              {selectedUser.profilePicture ? (
+                <img
+                  src={getImageUrl(selectedUser.profilePicture)}
+                  alt={selectedUser.username}
+                  className="w-28 h-28 rounded-3xl object-cover ring-4 ring-zinc-400/50 shadow-xl mb-4"
+                />
+              ) : (
+                <div className={`w-28 h-28 rounded-3xl flex items-center justify-center font-extrabold text-4xl mb-4 border shadow-xl ${
+                  themeMode === "dark" ? "bg-white text-black border-white" : "bg-black text-white border-black"
+                }`}>
+                  {(selectedUser.username || "U").charAt(0).toUpperCase()}
+                </div>
+              )}
+              <h2 className="text-xl font-extrabold truncate w-full">{selectedUser.username || selectedUser.phoneNumber}</h2>
+              <p className={`text-xs mt-1 font-semibold ${
+                onlineUsers.some((u) => String(u.id || u._id) === String(selectedUser._id))
+                  ? "text-emerald-500"
+                  : "text-zinc-500"
+              }`}>
+                {onlineUsers.some((u) => String(u.id || u._id) === String(selectedUser._id)) ? "● Currently Online" : "Offline"}
+              </p>
+            </div>
+
+            {/* Phone Number Info Box */}
+            <div className={`p-4 rounded-2xl border ${
+              themeMode === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-50 border-zinc-200 shadow-sm"
+            }`}>
+              <p className="text-[11px] font-bold tracking-wider uppercase text-indigo-400 mb-1">Mobile Phone Number</p>
+              <p className="font-semibold text-base font-mono flex items-center gap-2">
+                <span>📱</span>
+                <span>{selectedUser.phoneNumber || "Not specified"}</span>
+              </p>
+            </div>
+
+            {/* About / Bio Info Box */}
+            <div className={`p-4 rounded-2xl border ${
+              themeMode === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-50 border-zinc-200 shadow-sm"
+            }`}>
+              <p className="text-[11px] font-bold tracking-wider uppercase text-indigo-400 mb-1">About / Bio</p>
+              <p className="text-sm font-medium leading-relaxed italic">
+                "{selectedUser.about || "Hey there! I am using Realtime Chat."}"
+              </p>
+            </div>
+
+            {/* Shared Media Grid */}
+            <div>
+              <p className="text-[11px] font-bold tracking-wider uppercase text-indigo-400 mb-3">Shared Photos & Attachments</p>
+              {messages.filter((m) => m.messageType === "image" || m.messageType === "file").length === 0 ? (
+                <p className={`text-xs italic ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>No shared media in this chat yet.</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {messages
+                    .filter((m) => m.messageType === "image" && m.image)
+                    .map((m, idx) => (
+                      <a
+                        key={idx}
+                        href={getImageUrl(m.image)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="aspect-square rounded-xl overflow-hidden border border-zinc-700/50 hover:scale-105 transition shadow"
+                      >
+                        <img src={getImageUrl(m.image)} alt="Media" className="w-full h-full object-cover" />
+                      </a>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-2">
+              <button
+                onClick={(e) => handleDeleteContact(selectedUser, e)}
+                className="w-full py-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 rounded-2xl font-bold text-xs transition flex items-center justify-center gap-2 shadow"
+              >
+                <span>🗑️</span> Delete Contact
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Forward Modal */}
       {forwardModalMessage && (
