@@ -34,6 +34,17 @@ function Chat() {
   const [conversationId, setConversationId] = useState(null);
   const [userConversations, setUserConversations] = useState([]);
 
+  const selectedUserRef = useRef(selectedUser);
+  const conversationIdRef = useRef(conversationId);
+
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
+
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
@@ -223,10 +234,14 @@ function Chat() {
       const msgSenderId = msgData.sender?._id || msgData.sender || newMsg.senderId;
       const msgConvId = msgData.conversation || newMsg.conversationId;
 
-      if (
-        (selectedUser && String(msgSenderId) === String(selectedUser._id)) ||
-        (conversationId && String(msgConvId) === String(conversationId))
-      ) {
+      const currentSelUser = selectedUserRef.current;
+      const currentConvId = conversationIdRef.current;
+
+      const isCurrentChat =
+        (currentSelUser && String(msgSenderId) === String(currentSelUser._id)) ||
+        (currentConvId && String(msgConvId) === String(currentConvId));
+
+      if (isCurrentChat) {
         setMessages((prev) => {
           if (prev.some((m) => String(m._id) === String(msgData._id))) return prev;
           return [...prev, msgData];
@@ -251,13 +266,15 @@ function Chat() {
     });
 
     socket.on("typing", (data) => {
-      if (selectedUser && String(data.senderId) === String(selectedUser._id)) {
+      const currentSelUser = selectedUserRef.current;
+      if (currentSelUser && String(data.senderId) === String(currentSelUser._id)) {
         setTyping(true);
       }
     });
 
     socket.on("stop-typing", (data) => {
-      if (selectedUser && String(data.senderId) === String(selectedUser._id)) {
+      const currentSelUser = selectedUserRef.current;
+      if (currentSelUser && String(data.senderId) === String(currentSelUser._id)) {
         setTyping(false);
       }
     });
